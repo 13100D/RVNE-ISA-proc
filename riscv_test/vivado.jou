@@ -1,0 +1,55 @@
+#-----------------------------------------------------------
+# Vivado v2022.1 (64-bit)
+# SW Build 3526262 on Mon Apr 18 15:48:16 MDT 2022
+# IP Build 3524634 on Mon Apr 18 20:55:01 MDT 2022
+# Start of session at: Sun Oct 20 18:06:45 2024
+# Process ID: 8120
+# Current directory: C:/Users/riyas/Desktop/RVNE-ISA-proc/riscv_test
+# Command line: vivado.exe -gui_launcher_event rodinguilauncherevent23084 C:\Users\riyas\Desktop\RVNE-ISA-proc\riscv_test\riscv_test.xpr
+# Log file: C:/Users/riyas/Desktop/RVNE-ISA-proc/riscv_test/vivado.log
+# Journal file: C:/Users/riyas/Desktop/RVNE-ISA-proc/riscv_test\vivado.jou
+# Running On: RiyaSachLaptop, OS: Windows, CPU Frequency: 3072 MHz, CPU Physical cores: 16, Host memory: 33945 MB
+#-----------------------------------------------------------
+start_gui
+open_project C:/Users/riyas/Desktop/RVNE-ISA-proc/riscv_test/riscv_test.xpr
+update_compile_order -fileset sources_1
+create_project riscv C:/Users/riyas/Desktop/RVNE-ISA-proc/riscv -part xc7z020clg400-1
+set_property board_part tul.com.tw:pynq-z2:part0:1.0 [current_project]
+file mkdir C:/Users/riyas/Desktop/RVNE-ISA-proc/riscv/riscv.srcs/sources_1/new
+close [ open C:/Users/riyas/Desktop/RVNE-ISA-proc/riscv/riscv.srcs/sources_1/new/riscv.v w ]
+add_files C:/Users/riyas/Desktop/RVNE-ISA-proc/riscv/riscv.srcs/sources_1/new/riscv.v
+update_compile_order -fileset sources_1
+current_project riscv_test
+update_compile_order -fileset sim_1
+update_compile_order -fileset sim_1
+launch_simulation
+current_project riscv
+close_project
+launch_simulation
+source riscv_pipeline_basic_tb.tcl
+close_sim
+launch_simulation
+source riscv_pipeline_basic_tb.tcl
+close_sim
+launch_simulation
+source riscv_pipeline_basic_tb.tcl
+close_sim
+launch_simulation
+source riscv_pipeline_basic_tb.tcl
+close_sim
+launch_simulation
+source riscv_pipeline_basic_tb.tcl
+close_sim
+launch_simulation
+source riscv_pipeline_basic_tb.tcl
+close_sim
+launch_simulation
+source riscv_pipeline_basic_tb.tcl
+close_sim
+launch_simulation
+source tb_riscv_pipeline_basic.tcl
+close_sim
+launch_simulation
+source tb_riscv_pipeline_basic.tcl
+close_sim
+launch_simulation
