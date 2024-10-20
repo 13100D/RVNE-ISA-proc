@@ -1,0 +1,4 @@
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/Users/riyas/Desktop/RVNE-ISA-proc/riscv_test/riscv_test.srcs/sources_1/new/top.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module riscv_nonpipelined
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/Users/riyas/Desktop/RVNE-ISA-proc/riscv_test/riscv_test.srcs/sim_1/new/tb_riscv_pipeline.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module tb_riscv_nonpipelined

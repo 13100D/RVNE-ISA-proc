@@ -1,0 +1,6 @@
+Time resolution is 1 ps
+Register x3:          x
+Register x4:          x
+Register x6:          x
+Register x8:          x
+$finish called at time : 220 ns : File "C:/Users/riyas/Desktop/RVNE-ISA-proc/riscv_test/riscv_test.srcs/sim_1/new/tb_riscv_pipeline.v" Line 50
