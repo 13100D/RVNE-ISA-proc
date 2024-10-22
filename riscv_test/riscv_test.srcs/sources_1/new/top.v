@@ -6,7 +6,7 @@ module riscv_pipeline_basic (
     // Instruction memory, register file, SVR_WVR, and data memory
     reg [31:0] instruction_memory [0:255];  // 256 instructions
     reg [31:0] data_memory [0:255];         // 256 words of data
-    reg [31:0] register_file [0:31];        // 32 general-purpose registers
+    reg [31:0] register_file [0:31];        // 32 GPR
     reg [31:0] SVR_WVR [0:31];              // 16 SVR, 16 WVR
 
     // Pipeline registers
@@ -35,7 +35,7 @@ module riscv_pipeline_basic (
     // Iterator 
     integer i;
 
-    // Initialize components
+    // Initialize register file and data memory 
     initial begin
         PC = 0;
        
