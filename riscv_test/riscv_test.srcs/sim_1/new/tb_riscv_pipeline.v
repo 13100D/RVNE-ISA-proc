@@ -109,7 +109,7 @@ module tb_riscv_pipeline_basic;
 
     // Clock generation
     initial begin
-        clk = 0;
+        clk = 1;
         forever #5 clk = ~clk; // 10 time units clock period
     end
 
