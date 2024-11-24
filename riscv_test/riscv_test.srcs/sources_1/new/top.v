@@ -142,7 +142,7 @@ module riscv_pipeline_basic (
             
             for (i = 0; i < 32; i = i + 1) begin
                 NSR_Out[i] = NSR[(rd + i)%32];
-                $display(" NSR_Out: %b ", NSR_Out[i]);
+                
             end
                 
             for (i = 0; i < 4; i = i + 1) begin
@@ -211,8 +211,9 @@ module riscv_pipeline_basic (
         if (ID_EX_opcode == 7'b0001000)
         begin
             case(ID_EX_funct7)
-                7'b1110000: 
+                7'b1110000:
                 begin
+                    N_ACC = 0;
                     for (i = 0; i < 32; i = i + 1)
                     begin
                         cnt1 = i / 8;
@@ -234,12 +235,14 @@ module riscv_pipeline_basic (
                 
                 7'b1110001: 
                 begin
+                N_ACC = 0;
                     for (i = 0; i < 4; i = i + 1)
                     begin
                         for (j = 0; j < 32; j = j + 1)
                         begin
                             cnt1 = (4 * i) + (j / 8);
                             cnt2 = j % 8;
+                            $display(" NACC before case %b ",N_ACC);
                             case (cnt2)
                                 0: N_ACC = N_ACC + (ID_EX_SVR_Out[i][j] * ID_EX_WVR_Out[cnt1][3:0]);
                                 1: N_ACC = N_ACC + (ID_EX_SVR_Out[i][j] * ID_EX_WVR_Out[cnt1][7:4]);
