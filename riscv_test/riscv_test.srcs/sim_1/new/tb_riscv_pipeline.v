@@ -14,7 +14,9 @@ module tb_riscv_pipeline_basic;
     wire [31:0] PC;
     wire [31:0] IF_ID_instr;
     wire [31:0] IF_ID_PC;
-
+    wire [31:0] Vt [0:31];
+    wire [31:0] It [0:31];
+    
     wire [31:0] ID_EX_PC, ID_EX_instr;
     wire [31:0] ID_EX_read_data1, ID_EX_read_data2;
     wire [4:0]  ID_EX_rs1, ID_EX_rd;
@@ -30,14 +32,16 @@ module tb_riscv_pipeline_basic;
     wire [0:0]  EX_MEM_hint;
     wire [2:0]  EX_MEM_funct3;
     wire [6:0]  EX_MEM_funct7, EX_MEM_opcode;
-    wire [31:0] EX_MEM_N_ACC, EX_MEM_S_ACC;
+    wire [31:0] EX_MEM_N_ACC;
+    wire [31:0] EX_MEM_S_ACC [0:31];
 
     wire [31:0] MEM_WB_alu_result;
     wire [4:0]  MEM_WB_rd;
     wire [2:0]  MEM_WB_funct3;
     wire [6:0]  MEM_WB_funct7, MEM_WB_opcode;
     wire [31:0] MEM_WB_memOut [15:0];
-    wire [31:0] MEM_WB_N_ACC, MEM_WB_S_ACC;
+    wire [31:0] MEM_WB_N_ACC;
+    wire [31:0] MEM_WB_S_ACC [0:31];
 
     wire [31:0] SVR_WVR [0:31];
     wire [31:0] RPR, VTR, NTR;
@@ -47,7 +51,9 @@ module tb_riscv_pipeline_basic;
     assign PC = uut.PC;
     assign IF_ID_instr = uut.IF_ID_instr;
     assign IF_ID_PC = uut.IF_ID_PC;
-
+    
+    
+    
     assign ID_EX_PC = uut.ID_EX_PC;
     assign ID_EX_instr = uut.ID_EX_instr;
     assign ID_EX_read_data1 = uut.ID_EX_read_data1;
@@ -68,7 +74,11 @@ module tb_riscv_pipeline_basic;
     for (i = 0; i < 4; i = i + 1) begin
         assign ID_EX_SVR_Out[i] = uut.ID_EX_SVR_Out[i];
     end
-
+    for (i = 0; i < 31; i = i + 1) begin
+        assign Vt[i] = uut.Vt[i];
+        assign It[i] = uut.It[i];
+    end
+    
     assign EX_MEM_alu_result = uut.EX_MEM_alu_result;
     assign EX_MEM_rd = uut.EX_MEM_rd;
     assign EX_MEM_hint = uut.EX_MEM_hint;
@@ -76,7 +86,10 @@ module tb_riscv_pipeline_basic;
     assign EX_MEM_funct7 = uut.EX_MEM_funct7;
     assign EX_MEM_opcode = uut.EX_MEM_opcode;
     assign EX_MEM_N_ACC = uut.EX_MEM_N_ACC;
-    assign EX_MEM_S_ACC = uut.EX_MEM_S_ACC;
+    for (i = 0; i<32; i=i+1) begin
+        assign EX_MEM_S_ACC[i] = uut.EX_MEM_S_ACC[i];
+    end
+    
 
     assign MEM_WB_alu_result = uut.MEM_WB_alu_result;
     assign MEM_WB_rd = uut.MEM_WB_rd;
@@ -89,7 +102,10 @@ module tb_riscv_pipeline_basic;
         end
     endgenerate
     assign MEM_WB_N_ACC = uut.MEM_WB_N_ACC;
-    assign MEM_WB_S_ACC = uut.MEM_WB_S_ACC;
+    for (i = 0; i<32; i=i+1) begin
+        assign MEM_WB_S_ACC[i] = uut.MEM_WB_S_ACC[i];
+    end
+    
 
     generate
         for (i = 0; i < 32; i = i + 1) begin
@@ -116,9 +132,14 @@ module tb_riscv_pipeline_basic;
         uut.instruction_memory[4] = 32'b0000010_01011_01111_100_00000_0000100;
         uut.instruction_memory[5] = 32'b1110000_00010_10001_000_00000_0001000;
         uut.instruction_memory[6] = 32'b1110001_00010_10001_000_00001_0001000;
-        uut.instruction_memory[8] = 32'b1110001_00010_10001_000_00010_0001000;
-        uut.instruction_memory[9] = 32'b1110001_00010_10001_000_00011_0001000;
-        uut.instruction_memory[10] = 32'b1110000_00010_10001_000_00000_0001000;
+        uut.instruction_memory[7] = 32'b1110001_00010_10001_000_00010_0001000;
+        uut.instruction_memory[8] = 32'b1110001_00010_10001_000_00011_0001000;
+        uut.instruction_memory[9] = 32'b1110001_00010_10001_000_00000_0001000;
+        uut.instruction_memory[10] = 32'b1110100_00010_10001_000_00000_0001000;
+        uut.instruction_memory[11] = 32'b1110101_00010_10001_000_00000_0001000;
+        uut.instruction_memory[12] = 32'b1110100_00010_10001_000_00000_0010000;
+        uut.instruction_memory[13] = 32'b1110101_00010_10001_000_00000_0010000;
+        uut.instruction_memory[14] = 32'b1110110_00010_10001_000_00000_0010000;
     end
 
     // Assert RESET for one clock cycle

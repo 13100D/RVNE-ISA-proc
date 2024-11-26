@@ -12,7 +12,10 @@ module riscv_pipeline_basic (
     reg [31:0] VTR;                         // 1 VTR 
     reg [31:0] NTR;                         // 1 NTR 
     reg [31:0] NSR [0:31];                   // 32 NSR
- 
+
+    reg [31:0] Vt [0:31];
+    reg [31:0] It [0:31];
+    
     // Pipeline registers
     reg [31:0] IF_ID_instr, IF_ID_PC;
     
@@ -35,7 +38,7 @@ module riscv_pipeline_basic (
     reg [6:0] EX_MEM_funct7;
     reg [6:0] EX_MEM_opcode;
     reg [7:0] EX_MEM_N_ACC;
-    reg [7:0] EX_MEM_S_ACC;
+    reg [31:0] EX_MEM_S_ACC [0:31];
     
     reg [31:0] MEM_WB_alu_result;
     reg [4:0]  MEM_WB_rd;
@@ -44,7 +47,7 @@ module riscv_pipeline_basic (
     reg [31:0] MEM_WB_memOut [15:0];
     reg [6:0] MEM_WB_opcode;
     reg [7:0] MEM_WB_N_ACC;
-    reg [7:0] MEM_WB_S_ACC;
+    reg [31:0] MEM_WB_S_ACC [0:31];
 
     // Program Counter (PC)
     reg [31:0] PC;
@@ -60,6 +63,11 @@ module riscv_pipeline_basic (
         for (i = 0; i < 32; i = i + 1) begin
             register_file[i] <= i;
             NSR[i] <= 0;
+        end
+        
+        for (i = 0; i<32; i = i + 1) begin
+            Vt[i] <= 0;
+            It[i] <= 0;
         end
         
         // Initialize the data memory
@@ -175,7 +183,14 @@ module riscv_pipeline_basic (
             begin
                 ID_EX_read_data1 <= register_file[rs1];
                 ID_EX_read_data2 <= register_file[rs2]; 
-            end       
+            end
+            else if (opcode == 7'b0010000)
+            begin
+                for (i = 0; i < 32; i = i + 1)
+                begin                
+                    ID_EX_NSR_Out[i] <= NSR_Out[i]; 
+                end
+            end              
             else if (opcode == 7'b0001000)
             begin
                 for (i = 0; i < 16; i = i + 1)
@@ -202,11 +217,14 @@ module riscv_pipeline_basic (
     
     reg [31:0] alu_result = 0;
     reg [7:0] N_ACC = 0;
-    reg [7:0] S_ACC = 0;
+    reg [31:0] S_ACC [0:31];
     
-    reg [7:0] cnt1 = 0;
-    reg [7:0] cnt2 = 0;
-
+    reg [31:0] cnt1 = 0;
+    reg [31:0] cnt2 = 0;
+    reg [31:0] cnt3 = 0;
+    reg [31:0] rnd_i = 0;
+    reg [31:0] rnd_v = 0;
+    
     always @(*) begin
         if (ID_EX_opcode == 7'b0001000)
         begin
@@ -242,7 +260,7 @@ module riscv_pipeline_basic (
                         begin
                             cnt1 = (4 * i) + (j / 8);
                             cnt2 = j % 8;
-                            $display(" NACC before case %b ",N_ACC);
+                            
                             case (cnt2)
                                 0: N_ACC = N_ACC + (ID_EX_SVR_Out[i][j] * ID_EX_WVR_Out[cnt1][3:0]);
                                 1: N_ACC = N_ACC + (ID_EX_SVR_Out[i][j] * ID_EX_WVR_Out[cnt1][7:4]);
@@ -254,7 +272,7 @@ module riscv_pipeline_basic (
                                 7: N_ACC = N_ACC + (ID_EX_SVR_Out[i][j] * ID_EX_WVR_Out[cnt1][31:28]);
                             endcase
                             
-                            $display(" %b %b %b ", cnt1, cnt2, N_ACC);
+                            
                             
                         end
                     end
@@ -263,9 +281,97 @@ module riscv_pipeline_basic (
                     
                     $display(" %b %b ", ID_EX_NSR_Out[0], N_ACC);
                 end   
+                
+                7'b1110100: 
+                begin
+                for (i = 0; i < 32; i = i + 1) begin
+                    S_ACC[i] = 0;
+                end
+                    for (i = 0; i < 32; i = i + 1)
+                    begin
+                        cnt1 = i / 8;
+                        cnt2 = i % 8;
+                        cnt3 = i / 4;
+                        
+                        case (cnt2)
+                            0: S_ACC[cnt3][7:0] = ID_EX_NSR_Out[cnt3][7:0] + (ID_EX_SVR_Out[0][0] * ID_EX_WVR_Out[cnt1][3:0]);
+                            1: S_ACC[cnt3][15:8] = ID_EX_NSR_Out[cnt3][15:8] + (ID_EX_SVR_Out[0][0] * ID_EX_WVR_Out[cnt1][7:4]);
+                            2: S_ACC[cnt3][23:16] = ID_EX_NSR_Out[cnt3][23:16] + (ID_EX_SVR_Out[0][0] * ID_EX_WVR_Out[cnt1][11:8]);
+                            3: S_ACC[cnt3][31:24] = ID_EX_NSR_Out[cnt3][31:24] + (ID_EX_SVR_Out[0][0] * ID_EX_WVR_Out[cnt1][15:12]);
+                            4: S_ACC[cnt3][7:0] = ID_EX_NSR_Out[cnt3][7:0] + (ID_EX_SVR_Out[0][0] * ID_EX_WVR_Out[cnt1][19:16]);
+                            5: S_ACC[cnt3][15:8] = ID_EX_NSR_Out[cnt3][15:8] + (ID_EX_SVR_Out[0][0] * ID_EX_WVR_Out[cnt1][23:20]);
+                            6: S_ACC[cnt3][23:16] = ID_EX_NSR_Out[cnt3][23:16] + (ID_EX_SVR_Out[0][0] * ID_EX_WVR_Out[cnt1][27:24]);
+                            7: S_ACC[cnt3][31:24] = ID_EX_NSR_Out[cnt3][31:24] + (ID_EX_SVR_Out[0][0] * ID_EX_WVR_Out[cnt1][31:28]);
+                        endcase
+                    end
+                end
+                
+                7'b1110101: 
+                begin
+                for (i = 0; i < 32; i = i + 1) begin
+                    S_ACC[i] = 0;
+                end
+                for ( j = 0; j < 4; j = j + 1 ) 
+                begin
+                    for (i = 0; i < 32; i = i + 1)
+                    begin
+                        cnt1 = (4 * j) + (i / 8);
+                        cnt2 = i % 8;
+                        cnt3 = (8 * j) + (i / 4);
+                        $display("SACC: %b %b %b ", cnt3, S_ACC[cnt3], ID_EX_NSR_Out[cnt3]);
+                        case (cnt2)
+                            0: S_ACC[cnt3][7:0] = ID_EX_NSR_Out[cnt3][7:0] + (ID_EX_SVR_Out[0][0] * ID_EX_WVR_Out[cnt1][3:0]);
+                            1: S_ACC[cnt3][15:8] = ID_EX_NSR_Out[cnt3][15:8] + (ID_EX_SVR_Out[0][0] * ID_EX_WVR_Out[cnt1][7:4]);
+                            2: S_ACC[cnt3][23:16] = ID_EX_NSR_Out[cnt3][23:16] + (ID_EX_SVR_Out[0][0] * ID_EX_WVR_Out[cnt1][11:8]);
+                            3: S_ACC[cnt3][31:24] = ID_EX_NSR_Out[cnt3][31:24] + (ID_EX_SVR_Out[0][0] * ID_EX_WVR_Out[cnt1][15:12]);
+                            4: S_ACC[cnt3][7:0] = ID_EX_NSR_Out[cnt3][7:0] + (ID_EX_SVR_Out[0][0] * ID_EX_WVR_Out[cnt1][19:16]);
+                            5: S_ACC[cnt3][15:8] = ID_EX_NSR_Out[cnt3][15:8] + (ID_EX_SVR_Out[0][0] * ID_EX_WVR_Out[cnt1][23:20]);
+                            6: S_ACC[cnt3][23:16] = ID_EX_NSR_Out[cnt3][23:16] + (ID_EX_SVR_Out[0][0] * ID_EX_WVR_Out[cnt1][27:24]);
+                            7: S_ACC[cnt3][31:24] = ID_EX_NSR_Out[cnt3][31:24] + (ID_EX_SVR_Out[0][0] * ID_EX_WVR_Out[cnt1][31:28]);
+                        endcase
+                    end
+                    end  
+                end 
+                
             endcase
         end
-        
+        else if (ID_EX_opcode == 7'b0010000)
+        begin
+            case(ID_EX_funct7)
+                7'b1110100:
+                begin
+                   rnd_i = It[0]>>2;
+                   rnd_v = Vt[0]>>2;
+                   Vt[0] = Vt[0] - rnd_i + ID_EX_NSR_Out[0] - rnd_v; 
+                   It[0] = ID_EX_NSR_Out[0];
+                   if (Vt[0] > VTR)
+                        Vt[0] = 0;
+                end
+                7'b1110101:
+                begin
+                   for (i = 0; i < 8; i = i + 1) begin
+                       rnd_i = It[i]>>2;
+                       rnd_v = Vt[i]>>2;
+                       Vt[i] = Vt[i] - rnd_i + ID_EX_NSR_Out[i] - rnd_v; 
+                       It[i] = ID_EX_NSR_Out[i];
+                       if (Vt[i] > VTR)
+                            Vt[i] = 0;    
+                   end
+                end
+                7'b1110110:
+                begin
+                   for (i = 0; i < 32; i = i + 1) begin
+                       rnd_i = It[i]>>2;
+                       rnd_v = Vt[i]>>2;
+                       Vt[i] = Vt[i] - rnd_i + ID_EX_NSR_Out[i] - rnd_v; 
+                       It[i] = ID_EX_NSR_Out[i];
+                       if (Vt[i] > VTR)
+                            Vt[i] = 0;    
+                   end
+                end
+            endcase
+                
+        end
         else
             alu_result = alu_input1 + alu_input2;       
     end
@@ -274,7 +380,9 @@ module riscv_pipeline_basic (
         if (reset) begin
             EX_MEM_alu_result <= 0;
             EX_MEM_N_ACC <= 0;
-            EX_MEM_S_ACC <= 0;
+             for (i = 0; i < 32; i = i + 1) begin
+                EX_MEM_S_ACC[i] <=0;
+             end
         end else begin
             EX_MEM_alu_result <= alu_result;
             EX_MEM_rd <= ID_EX_rd;
@@ -283,7 +391,12 @@ module riscv_pipeline_basic (
             EX_MEM_funct7 <= ID_EX_funct7;
             EX_MEM_opcode <= ID_EX_opcode;
             EX_MEM_N_ACC <= N_ACC;
-            EX_MEM_S_ACC <= S_ACC;
+            
+            for (i = 0; i < 32; i = i + 1) begin
+            
+                EX_MEM_S_ACC[i] <= S_ACC[i];
+                $display("SACC testing:  %b %b %b ",i,S_ACC[i],EX_MEM_S_ACC[i]);
+                end
         end
     end
 
@@ -320,7 +433,9 @@ module riscv_pipeline_basic (
         if (reset) begin
             MEM_WB_alu_result <= 0;
             MEM_WB_N_ACC <= 0;
-            MEM_WB_S_ACC <= 0;
+           for (i = 0; i < 32; i = i + 1) begin
+                MEM_WB_S_ACC[i] <=0;
+             end
         end else begin
             MEM_WB_alu_result <= EX_MEM_alu_result;
             MEM_WB_rd <= EX_MEM_rd;
@@ -328,7 +443,9 @@ module riscv_pipeline_basic (
             MEM_WB_funct7 <= EX_MEM_funct7;
             MEM_WB_opcode <= EX_MEM_opcode;
             MEM_WB_N_ACC <= EX_MEM_N_ACC;
-            MEM_WB_S_ACC <= EX_MEM_S_ACC;
+            
+            for (i = 0; i < 32; i = i + 1)
+                MEM_WB_S_ACC[i] <= EX_MEM_S_ACC[i];
             
             for (i = 0; i < 16; i = i + 1) begin
                 MEM_WB_memOut[i] <= memOut[i];
@@ -376,7 +493,22 @@ module riscv_pipeline_basic (
                 if (!MEM_WB_funct7[2])
                     NSR[MEM_WB_rd][7:0] = MEM_WB_N_ACC;
                 else
-                    NSR[MEM_WB_rd][7:0] = MEM_WB_S_ACC;
+                    begin
+                    if (!MEM_WB_funct7[0]) begin
+                        for (i = 0; i < 8; i = i + 1) begin
+                            NSR[(MEM_WB_rd + i)%32] = MEM_WB_S_ACC[i];
+                            $display("write:  %b %b ",MEM_WB_S_ACC[i], NSR[(MEM_WB_rd + i)%32]);
+                            end
+                    end
+                    else 
+                    begin
+                        for (i = 0; i < 32; i = i + 1) begin
+                            NSR[(MEM_WB_rd + i)%32] = MEM_WB_S_ACC[i];
+                            $display("write:  %b %b ",MEM_WB_S_ACC[i], NSR[(MEM_WB_rd + i)%32]);
+                            end
+                    end
+                        
+                    end
             end       
         end
     end
