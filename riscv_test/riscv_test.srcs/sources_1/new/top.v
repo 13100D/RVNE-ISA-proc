@@ -122,7 +122,7 @@ module riscv_pipeline_basic (
             funct7 = 7'b0;
         end
         
-        else if (opcode == 7'b0000100)
+        else if (opcode == 7'b0000100 || opcode == 7'b0010000)
         begin   
             rd = IF_ID_instr[11:7];
             funct3 = IF_ID_instr[14:12];
